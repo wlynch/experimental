@@ -22,7 +22,7 @@ import (
 	"log"
 
 	"github.com/tektoncd/experimental/results/pkg/convert"
-	pb "github.com/tektoncd/experimental/results/proto/proto"
+	pb "github.com/tektoncd/experimental/results/proto"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline"
 	taskruninformer "github.com/tektoncd/pipeline/pkg/client/injection/informers/pipeline/v1beta1/taskrun"
 	listers "github.com/tektoncd/pipeline/pkg/client/listers/pipeline/v1beta1"

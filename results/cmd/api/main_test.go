@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
-	pb "github.com/tektoncd/experimental/results/proto/proto"
+	pb "github.com/tektoncd/experimental/results/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -30,12 +30,22 @@ func TestCreateTaskRun(t *testing.T) {
 	// connect to fake server and do testing
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if _, err := srv.CreateTaskRunResult(ctx, &pb.CreateTaskRunRequest{
-		TaskRun: &pb.TaskRun{ApiVersion: "1",
-			Metadata: &pb.ObjectMeta{
-				Uid:       "123459",
-				Name:      "mytaskrun",
-				Namespace: "default"}}}); err != nil {
+	if _, err := srv.CreateTaskRunResult(ctx, &pb.CreateResultRequest{
+		Result: &pb.Result{
+			Executions: []*pb.Execution{{
+				Execution: &pb.Execution_TaskRun{
+					&pb.TaskRun{
+						ApiVersion: "1",
+						Metadata: &pb.ObjectMeta{
+							Uid:       "123459",
+							Name:      "mytaskrun",
+							Namespace: "default",
+						},
+					},
+				}},
+			},
+		},
+	}); err != nil {
 		t.Fatalf("could not create taskrun: %v", err)
 	}
 }
