@@ -14,7 +14,7 @@ import (
 )
 
 // NewController creates a Controller with provided context and configmap
-func NewController(ctx context.Context, cmw configmap.Watcher, client pb.ResultsClient) *controller.Impl {
+func NewController(ctx context.Context, _ configmap.Watcher, client pb.ResultsClient) *controller.Impl {
 	logger := logging.FromContext(ctx)
 	taskRunInformer := taskruninformer.Get(ctx)
 	pipelineclientset := pipelineclient.Get(ctx)

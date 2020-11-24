@@ -3,11 +3,14 @@ package common
 import (
 	"context"
 	"encoding/json"
+	"testing"
 
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"github.com/tektoncd/pipeline/test"
 	"gomodules.xyz/jsonpatch/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"knative.dev/pkg/controller"
 )
 
 const (
@@ -50,4 +53,11 @@ func ReconcilePipelineRun(ctx context.Context, asset test.Assets, pipelineRun *v
 		return nil, err
 	}
 	return pr, err
+}
+
+func Reconcile(ctx context.Context, t *testing.T, ctrl *controller.Impl, name types.NamespacedName) {
+	ctrl.EnqueueKey(name)
+	if err := ctrl.Reconciler.Reconcile(ctx, name.String()); err != nil {
+		t.Fatalf("Failed to reconcile %s: %v", name.String, err)
+	}
 }
