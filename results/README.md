@@ -14,13 +14,43 @@ The API server interface is defined in `./proto/api.proto`, and a reference
 implementation backed by Sqlite will live in `./cmd/api`. A reference
 implementation of the in-cluster watcher will live in `./cmd/watcher`.
 
+## Roadmap
+
+### Q4 2020
+
+- [x] API defined
+- [ ] Project repo created
+
+### Q1 2020
+
+Below is a tentative roadmap for upcoming Results work. Feel free to reach out
+for any feature requests via an issue!
+
+- [ ] Result API v0.1.0
+  - [ ] [v1alpha2](https://github.com/tektoncd/community/blob/725d33a2bd4e0126c55c8c2fe6cabe90647add05/teps/0021-results-api.md) Result/Record CRUD
+  - [ ] Basic CEL filtering
+  - [ ] Pagination
+- [ ] Result Watcher v0.1.0
+  - [ ] TaskRun/PipelineRun result uploading
+
+### Q2 2020
+
+- [ ] Result API
+  - [ ] Auth
+  - [ ] Trigger Events
+  - [ ] Notifications
+- [ ] Result Watcher
+  - [ ] Task/PipelineRun Cleanup
+  - [ ] Trigger Events
+  - [ ] Notifications
+
 ## Development
 
 ### Configure your database.
 
 The reference implementation of the API Server requires a SQL database for
 result storage. The database schema can be found under
-[schema/results.sql](schema/results.sql). 
+[schema/results.sql](schema/results.sql).
 
 Initial one-time setup is required to configure the password and initial config:
 
