@@ -10,15 +10,15 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(pipelinerunCmd)
+	rootCmd.AddCommand(taskRunCmd)
 }
 
-var pipelinerunCmd = &cobra.Command{
-	Use:     "pipelinerun",
-	Aliases: []string{"pr"},
+var taskRunCmd = &cobra.Command{
+	Use:     "taskrun",
+	Aliases: []string{"tr"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(args)
-		pr, err := resolve.ResolvePipelineRun(args[0])
+		pr, err := resolve.ResolveTaskRun(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}

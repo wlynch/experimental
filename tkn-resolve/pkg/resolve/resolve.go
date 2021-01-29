@@ -10,26 +10,17 @@ import (
 )
 
 func ResolvePipelineRun(path string) (*v1beta1.PipelineRun, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
 	pr := new(v1beta1.PipelineRun)
-	if err := yaml.Unmarshal(b, pr); err != nil {
+	if err := read(path, pr); err != nil {
 		return nil, err
 	}
 
 	// Resolve Pipeline (either by file or by API)
 	spec := pr.Spec.PipelineSpec
 	if pr.Spec.PipelineRef != nil {
-		if strings.HasPrefix(pr.Spec.PipelineRef.Name, "./") || strings.HasPrefix(pr.Spec.PipelineRef.Name, "/") {
-			p, err := readPipeline(pr.Spec.PipelineRef.Name)
-			if err != nil {
+		if name := pr.Spec.PipelineRef.Name; strings.HasPrefix(name, "./") || strings.HasPrefix(name, "/") {
+			p := new(v1beta1.Pipeline)
+			if err := read(name, p); err != nil {
 				return nil, err
 			}
 			spec = &p.Spec
@@ -46,9 +37,9 @@ func ResolvePipelineRun(path string) (*v1beta1.PipelineRun, error) {
 		}
 
 		var ts v1beta1.TaskSpec
-		if strings.HasPrefix(pt.TaskRef.Name, "./") || strings.HasPrefix(pt.TaskRef.Name, "/") {
-			t, err := readTask(pt.TaskRef.Name)
-			if err != nil {
+		if name := pt.TaskRef.Name; strings.HasPrefix(name, "./") || strings.HasPrefix(name, "/") {
+			t := new(v1beta1.Task)
+			if err := read(name, t); err != nil {
 				return nil, err
 			}
 			ts = t.Spec
@@ -66,37 +57,46 @@ func ResolvePipelineRun(path string) (*v1beta1.PipelineRun, error) {
 	return pr, nil
 }
 
-func readPipeline(path string) (*v1beta1.Pipeline, error) {
-	f1, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f1.Close()
-	b1, err := ioutil.ReadAll(f1)
-	if err != nil {
-		return nil, err
-	}
-	p := new(v1beta1.Pipeline)
-	if err := yaml.Unmarshal(b1, p); err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
-func readTask(path string) (*v1beta1.Task, error) {
+func read(path string, out interface{}) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
+		return err
+	}
+	if err := yaml.Unmarshal(b, out); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ResolveTaskRun(path string) (*v1beta1.TaskRun, error) {
+	tr := new(v1beta1.TaskRun)
+	if err := read(path, tr); err != nil {
 		return nil, err
 	}
-	t := new(v1beta1.Task)
-	if err := yaml.Unmarshal(b, t); err != nil {
-		return nil, err
+
+	if tr.Spec.TaskRef == nil {
+		return tr, nil
 	}
-	return t, nil
+
+	var ts v1beta1.TaskSpec
+	if name := tr.Spec.TaskRef.Name; strings.HasPrefix(name, "./") || strings.HasPrefix(name, "/") {
+		t := new(v1beta1.Task)
+		if err := read(name, t); err != nil {
+			return nil, err
+		}
+		ts = t.Spec
+	} else {
+		// API Resolve
+	}
+
+	tr.Status.TaskSpec = &ts
+	tr.Spec.TaskRef = nil
+
+	return tr, nil
 }
