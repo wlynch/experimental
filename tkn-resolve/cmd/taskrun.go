@@ -17,7 +17,6 @@ var taskRunCmd = &cobra.Command{
 	Use:     "taskrun",
 	Aliases: []string{"tr"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
 		pr, err := resolve.ResolveTaskRun(args[0])
 		if err != nil {
 			log.Fatal(err)

@@ -24,8 +24,6 @@ func ResolvePipelineRun(path string) (*v1beta1.PipelineRun, error) {
 				return nil, err
 			}
 			spec = &p.Spec
-		} else {
-			// API resolve
 		}
 	}
 
@@ -43,8 +41,6 @@ func ResolvePipelineRun(path string) (*v1beta1.PipelineRun, error) {
 				return nil, err
 			}
 			ts = t.Spec
-		} else {
-			// API Resolve
 		}
 
 		pt.TaskSpec = &v1beta1.EmbeddedTask{TaskSpec: ts}
