@@ -1,0 +1,4 @@
+apiVersion: wlynch.dev/v1alpha1
+kind: CRDLoadtest
+metadata:
+  name: foo
