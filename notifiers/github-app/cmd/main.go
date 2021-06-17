@@ -27,7 +27,8 @@ import (
 	"strconv"
 
 	"github.com/google/go-github/v32/github"
-	githubcontroller "github.com/tektoncd/experimental/notifiers/github-app/pkg/controller"
+	githubclient "github.com/tektoncd/experimental/notifiers/github-app/pkg/github"
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/taskrun"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline"
 	"github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1beta1"
 	taskruninformer "github.com/tektoncd/pipeline/pkg/client/injection/informers/pipeline/v1beta1/taskrun"
@@ -79,7 +80,7 @@ func main() {
 		logger := logging.FromContext(ctx)
 		taskRunInformer := taskruninformer.Get(ctx)
 
-		c := &githubcontroller.GitHubAppReconciler{
+		c := &taskrun.GitHubAppReconciler{
 			Logger:        logger,
 			TaskRunLister: taskRunInformer.Lister(),
 			GitHub:        github,
@@ -97,18 +98,18 @@ func main() {
 	})
 }
 
-func githubClient(ctx context.Context) (*githubcontroller.GitHubClientFactory, error) {
+func githubClient(ctx context.Context) (*githubclient.GitHubClientFactory, error) {
 	if id := os.Getenv("GITHUB_APP_ID"); id != "" {
 		appID, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing ${GITHUB_APP_ID} (%s): %v", os.Getenv("GITHUB_APP_ID"), err)
 		}
-		return githubcontroller.NewApp(http.DefaultTransport, appID, os.Getenv("GITHUB_APP_KEY"))
+		return githubclient.NewApp(http.DefaultTransport, appID, os.Getenv("GITHUB_APP_KEY"))
 	} else {
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
 		)
 		tc := oauth2.NewClient(ctx, ts)
-		return githubcontroller.NewStatic(github.NewClient(tc)), nil
+		return githubclient.NewStatic(github.NewClient(tc)), nil
 	}
 }

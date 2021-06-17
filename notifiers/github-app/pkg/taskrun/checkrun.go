@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package taskrun
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/annotations"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
@@ -28,7 +29,7 @@ import (
 )
 
 func (r *GitHubAppReconciler) HandleCheckRun(ctx context.Context, log *zap.SugaredLogger, tr *v1beta1.TaskRun) error {
-	gh, err := r.GitHub.NewClient(tr.Annotations[key("installation")])
+	gh, err := r.GitHub.NewClient(annotations.Installation)
 	if err != nil {
 		return err
 	}
@@ -59,8 +60,8 @@ func (r *GitHubAppReconciler) HandleCheckRun(ctx context.Context, log *zap.Sugar
 	// Update TaskRun with CheckRun ID so that we can determine if there's an
 	// existing CheckRun for the TaskRun in future updates.
 	// TODO: Prevent a 2nd round of reconciliation for this annotation update?
-	if id := strconv.FormatInt(cr.GetID(), 10); id != tr.Annotations[key("checkrun")] {
-		tr.Annotations[key("checkrun")] = id
+	if id := strconv.FormatInt(cr.GetID(), 10); id != tr.Annotations[annotations.CheckRun] {
+		tr.Annotations[annotations.CheckRun] = id
 		if _, err := r.Tekton.TaskRuns(tr.GetNamespace()).Update(tr); err != nil {
 			log.Errorf("TaskRun.Update: %v", err)
 			return err
@@ -71,13 +72,13 @@ func (r *GitHubAppReconciler) HandleCheckRun(ctx context.Context, log *zap.Sugar
 
 // UpsertCheckRun updates or creates a check run for the given TaskRun.
 func UpsertCheckRun(ctx context.Context, client *github.Client, tr *v1beta1.TaskRun, output *github.CheckRunOutput) (*github.CheckRun, error) {
-	owner := tr.Annotations[key("owner")]
-	repo := tr.Annotations[key("repo")]
-	commit := tr.Annotations[key("commit")]
+	owner := tr.Annotations[annotations.Owner]
+	repo := tr.Annotations[annotations.Repo]
+	commit := tr.Annotations[annotations.Commit]
 
 	status, conclusion := status(tr.Status)
 
-	if id, ok := tr.Annotations[key("checkrun")]; ok {
+	if id, ok := tr.Annotations[annotations.CheckRun]; ok {
 		// A check run was already associated to the TaskRun - update.
 		n, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
@@ -101,12 +102,12 @@ func UpsertCheckRun(ctx context.Context, client *github.Client, tr *v1beta1.Task
 	}
 
 	// There's no existing CheckRun - create.
-	cr, _, err := client.Checks.CreateCheckRun(ctx, tr.Annotations[key("owner")], tr.Annotations[key("repo")], github.CreateCheckRunOptions{
+	cr, _, err := client.Checks.CreateCheckRun(ctx, owner, repo, github.CreateCheckRunOptions{
 		ExternalID:  github.String(tr.GetSelfLink()),
 		Name:        tr.GetNamespacedName().String(),
 		Status:      github.String(status),
 		Conclusion:  github.String(conclusion),
-		HeadSHA:     tr.Annotations[key("commit")],
+		HeadSHA:     commit,
 		Output:      output,
 		StartedAt:   ghtime(tr.Status.StartTime),
 		CompletedAt: ghtime(tr.Status.CompletionTime),

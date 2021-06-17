@@ -1,10 +1,11 @@
-package controller
+package taskrun
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/annotations"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"github.com/tektoncd/pipeline/pkg/pod"
 	"knative.dev/pkg/apis"
@@ -16,9 +17,9 @@ func (r *GitHubAppReconciler) HandleStatus(ctx context.Context, tr *v1beta1.Task
 		return err
 	}
 
-	owner := tr.Annotations[key("owner")]
-	repo := tr.Annotations[key("repo")]
-	commit := tr.Annotations[key("commit")]
+	owner := tr.Annotations[annotations.Owner]
+	repo := tr.Annotations[annotations.Repo]
+	commit := tr.Annotations[annotations.Commit]
 
 	var description *string
 	if m := tr.GetStatusCondition().GetCondition(apis.ConditionSucceeded).GetMessage(); m != "" {

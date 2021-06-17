@@ -1,4 +1,4 @@
-package controller
+package github
 
 import (
 	"fmt"
@@ -46,5 +46,4 @@ func (f *GitHubClientFactory) NewClient(installationID string) (*github.Client, 
 		return nil, err
 	}
 	return github.NewClient(&http.Client{Transport: ghinstallation.NewFromAppsTransport(f.at, n)}), nil
-
 }

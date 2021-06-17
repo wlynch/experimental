@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package taskrun
 
 import (
 	"context"
@@ -25,6 +25,8 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v32/github"
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/annotations"
+	githubclient "github.com/tektoncd/experimental/notifiers/github-app/pkg/github"
 	faketekton "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/fake"
 	informers "github.com/tektoncd/pipeline/pkg/client/informers/externalversions"
 	"go.uber.org/zap/zaptest"
@@ -81,7 +83,7 @@ func TestGitHubAppReconciler_Reconcile(t *testing.T) {
 	r := &GitHubAppReconciler{
 		Logger:        zaptest.NewLogger(t).Sugar(),
 		TaskRunLister: informer.Tekton().V1beta1().TaskRuns().Lister(),
-		GitHub:        NewStatic(ghclient),
+		GitHub:        githubclient.NewStatic(ghclient),
 		Tekton:        tekton.TektonV1beta1(),
 		Kubernetes:    k8s,
 	}
@@ -98,7 +100,7 @@ func TestGitHubAppReconciler_Reconcile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not find TaskRun post-reconcile: %v", err)
 	}
-	if tr.Annotations[key("checkrun")] != "1234" {
-		t.Fatalf("%s: want %s, got %s", key("checkrun"), "1234", tr.Annotations[key("checkrun")])
+	if cr := tr.Annotations[annotations.CheckRun]; cr != "1234" {
+		t.Fatalf("%s: want %s, got %s", "1234", annotations.CheckRun, cr)
 	}
 }

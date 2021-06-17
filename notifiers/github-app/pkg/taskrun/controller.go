@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package taskrun
 
 import (
 	"bytes"
@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/annotations"
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/github"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	tektonclient "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1beta1"
 	listers "github.com/tektoncd/pipeline/pkg/client/listers/pipeline/v1beta1"
@@ -36,7 +38,7 @@ import (
 type GitHubAppReconciler struct {
 	Logger        *zap.SugaredLogger
 	TaskRunLister listers.TaskRunLister
-	GitHub        *GitHubClientFactory
+	GitHub        *github.GitHubClientFactory
 	Kubernetes    kubernetes.Interface
 	Tekton        tektonclient.TektonV1beta1Interface
 }
@@ -63,7 +65,7 @@ func (r *GitHubAppReconciler) Reconcile(ctx context.Context, reconcileKey string
 	log.Info("Sending update")
 
 	// If no installation is associated, assume a non-GitHub App status.
-	if id := tr.Annotations[key("installation")]; id == "" {
+	if id := tr.Annotations[annotations.Installation]; id == "" {
 		return r.HandleStatus(ctx, tr)
 	}
 	// Create Check Run with GitHub App
@@ -91,8 +93,4 @@ func getLogs(ctx context.Context, client kubernetes.Interface, tr *v1beta1.TaskR
 
 	}
 	return b.String(), err
-}
-
-func key(s string) string {
-	return fmt.Sprintf("github.integrations.tekton.dev/%s", s)
 }

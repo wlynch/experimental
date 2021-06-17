@@ -12,25 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package taskrun
 
 import (
+	"bytes"
+	"embed"
 	"fmt"
-	"io/ioutil"
+	"text/template"
 
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"sigs.k8s.io/yaml"
 )
 
-func taskrun(path string) *v1beta1.TaskRun {
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(fmt.Errorf("error reading input taskrun: %v", err))
-	}
+var (
+	//go:embed template.md
+	fs embed.FS
 
-	tr := new(v1beta1.TaskRun)
-	if err := yaml.Unmarshal(b, tr); err != nil {
-		panic(fmt.Errorf("error unmarshalling taskrun: %v", err))
+	summaryTmpl = template.Must(template.New("").Funcs(template.FuncMap{
+		"yaml": func(o interface{}) (string, error) {
+			b, err := yaml.Marshal(o)
+			if err != nil {
+				return "", err
+			}
+			return string(b), nil
+		},
+	}).ParseFS(fs, "*"))
+)
+
+func render(tr *v1beta1.TaskRun) (string, error) {
+	b := new(bytes.Buffer)
+	if err := summaryTmpl.ExecuteTemplate(b, "template.md", tr); err != nil {
+		return "", fmt.Errorf("template.Execute: %w", err)
 	}
-	return tr
+	return b.String(), nil
 }

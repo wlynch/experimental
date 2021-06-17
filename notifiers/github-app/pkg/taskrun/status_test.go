@@ -1,4 +1,4 @@
-package controller
+package taskrun
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-github/v32/github"
+	githubclient "github.com/tektoncd/experimental/notifiers/github-app/pkg/github"
 )
 
 func TestHandleStatus(t *testing.T) {
@@ -19,7 +20,7 @@ func TestHandleStatus(t *testing.T) {
 	client.BaseURL = mustParseURL(srv.URL + "/")
 
 	r := &GitHubAppReconciler{
-		GitHub: NewStatic(client),
+		GitHub: githubclient.NewStatic(client),
 	}
 
 	ctx := context.Background()

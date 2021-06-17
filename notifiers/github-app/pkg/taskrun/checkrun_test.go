@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controller
+package taskrun
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-github/v32/github"
+	"github.com/tektoncd/experimental/notifiers/github-app/pkg/annotations"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -64,7 +65,7 @@ func TestUpsertCheckRun(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
-		tr.Annotations[key("checkrun")] = "1234"
+		tr.Annotations[annotations.CheckRun] = "1234"
 		mux.HandleFunc("/repos/tektoncd/test/check-runs/1234", validateCheckRun(t, &github.CheckRun{
 			Name:        github.String("echo-6b4fn-echo-xrxq4"),
 			HeadSHA:     github.String("db165c3a71dc45d096aebd0f49f07ec565ad1e08"),
